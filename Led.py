@@ -1,4 +1,4 @@
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 from time import sleep as sleep
 from timeit import default_timer as timer
 
@@ -16,7 +16,7 @@ class LEDboard:
         [0, -1, 1]   # F
         ]
 
-    #GPIO.setmode(GPIO.BCM)
+    GPIO.setmode(GPIO.BCM)
 
     def turn_off_all(self):
         GPIO.setup(0, GPIO.IN)
@@ -59,8 +59,8 @@ class LEDboard:
             end = timer()
             while (end - start) < 1:
                 for i in range(leds_on):
-                    # self.light_led(i)
-                    self.proxy_light_led(i)
+                    self.light_led(i)
+                    #self.proxy_light_led(i)
                 end = timer()
             leds_on = leds_on + 1
         self.turn_off_all()
@@ -80,8 +80,8 @@ class LEDboard:
             flash_change = timer()
             while (now - flash_change) < 0.5:
                 for i in range(6):
-                    #self.light_led(i)
-                    self.proxy_light_led(i)
+                    self.light_led(i)
+                    #self.proxy_light_led(i)
                 now = timer()
             self.turn_off_all()
             sleep(0.5)
@@ -96,3 +96,11 @@ class LEDboard:
                 sleep(0.2)
             now = timer()
         self.turn_off_all()
+
+
+def main():
+    l = LEDboard()
+    l.power_up()
+
+if __name__ == "__main__":
+    main()
