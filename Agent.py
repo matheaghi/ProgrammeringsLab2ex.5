@@ -1,4 +1,5 @@
 from inspect import isfunction
+import time
 import keypad
 import Led
 
@@ -25,12 +26,13 @@ class KPC:
         #print("Power up")
 
     def get_next_signal(self):
+
         if (self.override != '0'):
             ret = self.override
             self.override = '0'
             return ret
         else:
-            return self.keypad.get_next_signal()
+            return str(self.keypad.get_next_signal())
 
     def verify_login(self, symbol):
         print("Verify login: " + str(self.CUMP))
@@ -63,7 +65,7 @@ class KPC:
         return False
 
     def light_one_led(self, symbol):
-        self.ledBoard.turn_on_led(self.lid, self.ldur)
+        self.ledBoard.turn_on_led(int(self.lid), int(self.ldur))
         #print("Turn on led nr " + self.lid + " for " + self.ldur + " seconds.")
         self.clearAll(symbol)
 
@@ -159,13 +161,12 @@ class FSM:
                     break
 
     def main_loop(self):
-        while True:
-            if(self.kpc.mock_counter == len(self.kpc.mock)):
-                break
-            print("You have moved to state: " + str(self.state))
-            self.signal = self.get_next_symbol()
-            print("Symbol in is: " + str(self.signal))
-            self.run_rules()
+        print("You have moved to state: " + str(self.state))
+        self.signal = self.get_next_signal()
+        print("Symbol in is: " + str(self.signal))
+        self.run_rules()
+        time.sleep(1)
+
 
 
 class Rule:
@@ -179,12 +180,13 @@ if __name__ == '__main__':
 
     kpc = KPC()
     fsm = FSM()
+
     fsm.add_rule(0, 1, fsm.any_symbol(fsm.signal), fsm.kpc.intit_passcode_entry)
     fsm.add_rule(1, 2, '*', fsm.kpc.verify_login)
     fsm.add_rule(1, 1, fsm.signal_is_digit(fsm.signal), fsm.kpc.add_to_CUMP)
     fsm.add_rule(1, 0, fsm.any_symbol(fsm.signal), fsm.kpc.flash_leds)
     fsm.add_rule(2, 3, "Y", fsm.kpc.twinkle_leds)
-    fsm.add_rule(2, 0, fsm.any_symbol(fsm.signal), fsm.kpc.flash_leds)
+    fsm.add_rule(2, 1, fsm.any_symbol(fsm.signal), fsm.kpc.flash_leds)
     fsm.add_rule(3, 4, "*", fsm.kpc.do_nothing)
     fsm.add_rule(3, 8, "#", fsm.kpc.do_nothing)
     fsm.add_rule(3, 6, fsm.signal_is_digit(fsm.signal), fsm.kpc.set_lid)
@@ -198,4 +200,5 @@ if __name__ == '__main__':
     fsm.add_rule(8, 0, "#", fsm.kpc.exit_action)
     fsm.add_rule(8, 3, fsm.any_symbol(fsm.signal), fsm.kpc.clearAll)
 
-    fsm.main_loop()
+    while True:
+        fsm.main_loop()

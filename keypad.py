@@ -1,6 +1,6 @@
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import time
-#GPIO.setwarnings(False)
+GPIO.setwarnings(False)
 
 class Keypad:
 
@@ -47,8 +47,9 @@ class Keypad:
         try:
             while True:
                 signal = self.do_polling()
-                if signal:
+                if signal or (signal==0):
                     print("Next signal: ", signal)
                     return signal
         except KeyboardInterrupt:
             GPIO.cleanup()
+
