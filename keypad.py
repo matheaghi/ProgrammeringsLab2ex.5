@@ -1,69 +1,111 @@
 import RPi.GPIO as GPIO
 import time
+#GPIO.setwarnings(False)
 
 
 class Keypad:
 
-    # Global variables
-    keypad_matrix = [[1,2,3],
-                     [4,5,6],
-                     [7,8,9],
-                     ['*',0,'#']]
-    ROW = [18,23,24,25]
-    COL = [17,27,22]
+    def __init__(self):
+        self.keypad_matrix = [[1, 2, 3],
+                              [4, 5, 6],
+                              [7, 8, 9],
+                              ['*', 0, '#']]
 
+        self.row_pins = [18, 23, 24, 25]
+        self.col_pins = [17, 27, 22]
+        #self.last_pressed = '/'
+        self.pressed_key = None
+        self.setup()
+
+
+    def setup(self):
+        GPIO.setmode(GPIO.BCM)
+        # Declaring rowpins as output
+        for rp in self.row_pins:
+            GPIO.setup(rp, GPIO.OUT)
+
+        for cp in self.col_pins:
+            GPIO.setup(cp, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+
+    """
+    # Global variables
+    def __init__(self):
+        self.keypad_matrix = [[1, 2, 3],
+                             [4, 5, 6],
+                             [7, 8, 9],
+                             ['*', 0, '#']]
+
+        self.row_pins = [18, 23, 24, 25]
+        self.col_pins = [17, 27, 22]
+        self.last_key = "/"
+
+    @staticmethod
     def setup(self):
         GPIO.setmode(GPIO.BCM)
 
         #Declaring rowpins as output
         for rp in range(4):
-            GPIO.setup(ROW[rp], GPIO.OUT)
+            GPIO.setup(self.ROW[rp], GPIO.OUT)
             #GPIO.output(ROW[rp], 1)
 
-        """
+
         GPIO.setup(18, GPIO.OUT)        #R0
         GPIO.setup(23, GPIO.OUT)        #R1
         GPIO.setup(24, GPIO.OUT)        #R2
         GPIO.setup(25, GPIO.OUT)        #R3
-        """
+
 
         #Declaring columnpins as input,
         #   GPIO.PUD_DOWN declares that pin will employ a pull-down resistor
         for cp in range(3):
-            GPIO.setup(ROW[cp], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+            GPIO.setup(self.ROW[cp], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 
-        """
+
         GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)         #C0
         GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)         #C1
         GPIO.setup(22, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)         #C2
 
-        """
+"""
 
 
     #Keypad object serves as an interface between agent and physical keypad,
     #   its job is to poll the keypad to detect keystrokes and send these to the agent
     def do_polling(self):
-        try:
-            while True:
-                for rp in ROW:
-                    GPIO.output(ROW[rp], GPIO.HIGH)                 #Sets rowpin high one at a time
-                    for cp in COL:
-                        if GPIO.input(cp) == GPIO.HIGH:             #Checks if rowpin is high
-                            pressed_key = keypad_matrix[rp][cp]
-                            print("Key pressed: ", pressed_key)
-                            return pressed_key                      #Returns pressed symbol
-                        else:
-                            pass
-                            #print("No key has been pressed.")
-                        time.sleep(0.01)
-                    GPIO.output(ROW[rp], GPIO.LOW)                  #Resets rowpin
-        except KeyboardInterrupt:
-            GPIO.cleanup()
+        for rp in range(4):
+            GPIO.output(self.row_pins[rp], GPIO.HIGH)                 #Sets rowpin high one at a time
+            for cp in range(3):
+                if GPIO.input(self.col_pins[cp]) == GPIO.HIGH:             #Checks if rowpin is high
+                    print(rp, cp)
+                    self.pressed_key = self.keypad_matrix[rp][cp]
+                    print("Key pressed: ", self.pressed_key)
+                    GPIO.output(self.row_pins[rp], GPIO.LOW)
+                    return self.pressed_key                      #Returns pressed symbol
+                time.sleep(0.01)
+            GPIO.output(self.row_pins[rp], GPIO.LOW)    #Resets rowpin
 
 
 
     def get_next_signal(self):
-        pressed_key = 0
-        while pressed_key == 0:
-            self.do_polling()
+        try:
+            while True:
+                signal = self.do_polling()
+                if signal :
+                    print("next signal:", signal)
+                    return signal
+                #self.pressed_key = -1
+        except KeyboardInterrupt:
+            GPIO.cleanup()
+
+
+def main():
+    k = Keypad()
+    k.get_next_signal()
+    #time.sleep()
+
+
+
+
+if __name__ == "__main__":
+    main()
