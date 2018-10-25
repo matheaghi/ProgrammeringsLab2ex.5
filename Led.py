@@ -8,10 +8,10 @@ class LEDboard:
     _pins = [5, 6, 13]
 
     _pin_led_states = [
-        [1, 0, -1],  # l1 H, l2 L = 1 G
+        [0, 1, -1],  # l1 L, L2 H = 1 R
         [0, -1, 1],  # l1 L, l3 H = 2 G
         [-1, 0, 1],  # l2 L, l3 H = 3 G
-        [0, 1, -1],  # l1 L, L2 H = 1 R
+        [1, 0, -1],  # l1 H, l2 L = 1 G
         [1, -1, 0],  # l1 H, l3 L = 2 R
         [-1, 1, 0],  # l2 H, l3 L = 3 R
         ]
@@ -19,9 +19,12 @@ class LEDboard:
     GPIO.setmode(GPIO.BCM)
 
     def turn_off_all(self):
-        GPIO.setup(0, GPIO.IN)
-        GPIO.setup(1, GPIO.IN)
-        GPIO.setup(2, GPIO.IN)
+        GPIO.setup(self._pins[0], GPIO.OUT)
+        GPIO.setup(self._pins[1], GPIO.OUT)
+        GPIO.setup(self._pins[2], GPIO.OUT)
+        GPIO.output(self._pins[0], 0)
+        GPIO.output(self._pins[1], 0)
+        GPIO.output(self._pins[2], 0)
 
     def set_pin(self, pin_index, pin_state):
         if pin_state == -1:
@@ -96,11 +99,3 @@ class LEDboard:
                 sleep(0.2)
             now = timer()
         self.turn_off_all()
-
-
-def main():
-    l = LEDboard()
-    l.power_up()
-
-if __name__ == "__main__":
-    main()
